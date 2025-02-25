@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <title>JSON Formatter</title>
+    <style>
+      body {
+        font-family: "Courier New", monospace;
+        background-color: #1e1e1e;
+        color: #00ff00;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #2c2c2c;
+        border-radius: 10px;
+      }
+      textarea {
+        width: 775px;
+        height: 460px;
+        background: #1e1e1e;
+        color: #00ff00;
+        padding: 10px;
+        border: 1px solid #00ff00;
+        font-family: "Courier New", monospace;
+        resize: none;
+      }
+      button,
+      input {
+        padding: 10px;
+        margin: 10px 5px;
+        background: #00ff00;
+        color: #1e1e1e;
+        border: none;
+        cursor: pointer;
+      }
+      .output-box {
+        background-color: #333;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #00ff00;
+        min-height: 300px;
+        overflow-x: auto;
+        font-size: 14px;
+      }
+      .json-key {
+        color: #ffcc00;
+      }
+      .json-value {
+        color: #00ff00;
+      }
+      .json-string {
+        color: #ff6666;
+      }
+      .toggle {
+        cursor: pointer;
+        color: #00ccff;
+      }
+      .search-highlight {
+        background: yellow;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>JSON Formatter</h2>
+      <textarea id="jsonInput" placeholder="Enter JSON here..."></textarea>
+      <input type="text" id="search" placeholder="Search JSON..." />
+      <button onclick="formatJSON()">Format JSON</button>
+      <button onclick="beautifyJSON()">Beautify</button>
+      <button onclick="minifyJSON()">Minify</button>
+      <button onclick="randomizeJSON()">Randomize</button>
+      <button onclick="clearJSON()">Clear</button>
+      <button onclick="copyJSON()">Copy JSON</button>
+      <div class="output-box" id="jsonOutput"></div>
+      <p style="text-align: center;">Developed By <a style="color: #00ff00; text-decoration: none;" href="http://github.com/cseswapon" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i>
+ Swapon Saha</p></a> 
+    </div>
+    <script>
+      function formatJSON() {
+        const input = document.getElementById("jsonInput").value;
+        try {
+          const json = JSON.parse(input);
+          if (Array.isArray(json) && json.length === 0) {
+            document.getElementById("jsonOutput").textContent = "[{}]";
+          } else {
+            document.getElementById("jsonOutput").innerHTML = renderJSON(json);
+          }
+        } catch (error) {
+          document.getElementById("jsonOutput").textContent =
+            "Invalid JSON format!";
+        }
+      }
+
+      function renderJSON(obj, level = 0) {
+        let html =
+          "<ul style='list-style:none; padding-left:" + level * 20 + "px;'>";
+        for (let key in obj) {
+          if (typeof obj[key] === "object" && obj[key] !== null) {
+            html +=
+              `<li>
+                        <span class='toggle' onclick='toggle(this)'>[+]</span> <span class='json-key'>"${key}"</span>: { 
+                        <div style='display:none;'>` +
+              renderJSON(obj[key], level + 1) +
+              `</div> }</li>`;
+          } else {
+            html += `<li><span class='json-key'>"${key}"</span>: <span class='json-value'>${JSON.stringify(
+              obj[key]
+            )}</span></li>`;
+          }
+        }
+        return html + "</ul>";
+      }
+
+      function toggle(element) {
+        let nextDiv = element.nextElementSibling.nextElementSibling;
+        if (nextDiv.style.display === "none") {
+          nextDiv.style.display = "block";
+          element.textContent = "[-]";
+        } else {
+          nextDiv.style.display = "none";
+          element.textContent = "[+]";
+        }
+      }
+
+      function clearJSON() {
+        document.getElementById("jsonInput").value = "";
+        document.getElementById("jsonOutput").innerHTML = "";
+      }
+
+      function beautifyJSON() {
+        try {
+          let json = JSON.parse(document.getElementById("jsonInput").value);
+          document.getElementById("jsonInput").value = JSON.stringify(
+            json,
+            null,
+            4
+          );
+        } catch (error) {
+          alert("Invalid JSON!");
+        }
+      }
+
+      function minifyJSON() {
+        try {
+          let json = JSON.parse(document.getElementById("jsonInput").value);
+          document.getElementById("jsonInput").value = JSON.stringify(json);
+        } catch (error) {
+          alert("Invalid JSON!");
+        }
+      }
+
+      function randomizeJSON() {
+        try {
+          let json = JSON.parse(document.getElementById("jsonInput").value);
+          let keys = Object.keys(json);
+          keys.sort(() => Math.random() - 0.5);
+          let randomizedJson = {};
+          keys.forEach((key) => (randomizedJson[key] = json[key]));
+          document.getElementById("jsonInput").value = JSON.stringify(
+            randomizedJson,
+            null,
+            4
+          );
+        } catch (error) {
+          alert("Invalid JSON!");
+        }
+      }
+
+      function copyJSON() {
+        const textArea = document.getElementById("jsonInput");
+        textArea.select();
+        document.execCommand("copy");
+        alert("JSON copied to clipboard!");
+      }
+
+      document.getElementById("search").addEventListener("input", function () {
+        let term = this.value.toLowerCase();
+        let keys = document.querySelectorAll(".json-key");
+        keys.forEach((key) => {
+          if (key.textContent.toLowerCase().includes(term)) {
+            key.classList.add("search-highlight");
+          } else {
+            key.classList.remove("search-highlight");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
